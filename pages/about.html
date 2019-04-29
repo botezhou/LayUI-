@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <title>云程管理</title>
+  <link rel="stylesheet" href="../layui/css/layui.css" media="all">
+  <link rel="stylesheet" href="../css/common.css" media="all">
+</head>
+<body>
+	<div>
+		<blockquote class="layui-elem-quote">关于我们</blockquote> 
+		<div>
+			<button class="layui-btn addButton"><i class="layui-icon layui-icon-edit" style="font-size: 14px; color: #fff;"></i> 编辑</button>
+		</div>
+		<div id="about">
+			
+		</div>
+	</div>
+	<div id="addBox" class="lay-hidden">
+		<form class="layui-form" action="">		
+			<div class="layui-form-item">
+				<fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+					<legend>头部banner图</legend>
+				</fieldset>
+				<div class="layui-input-block">
+					<div class="layui-upload">
+						<button type="button" class="layui-btn" id="test1">上传图片</button>
+						<blockquote class="layui-elem-quote layui-quote-nm" style="margin-top: 10px;">
+							预览图：
+							<div class="layui-upload-list" id="imgObj"></div>
+						</blockquote>
+					</div> 
+				</div>
+			</div>
+			<fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+				<legend>关于我们</legend>
+			</fieldset>
+			<div class="layui-form-item">
+				<!-- <label class="layui-form-label">关于我们</label> -->
+				<div class="layui-input-block">
+					<div id="editor">
+							
+					</div>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+				</div>
+			</div>
+		</form>
+		<!-- wangEditor编辑器 -->
+		<script type="text/javascript" src="../js/wangEditor.min.js"></script>
+		<script type="text/javascript">
+				var E = window.wangEditor;
+				var editor = new E('#editor');
+				editor.customConfig.uploadImgShowBase64 = true;   // 使用 base64 保存图片
+				editor.create();
+				// 读取 html
+				// alert(editor.txt.html())
+
+		</script>
+	</div>	
+</body>
+<script src="../js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../layui/layui.js" type="text/javascript" charset="utf-8"></script>
+</html>
+<script type="text/javascript">
+	layui.use(['table','jquery','upload'], function(){
+		var table = layui.table,
+				$ = layui.jquery,
+			upload = layui.upload;
+		// 点击轮播图上传
+		$('.addButton').on('click',function(){
+			layer.open({
+				type: 1, 
+				title: ['关于我们','margin-bottom: 10px;font-size: 16px;border-left: 5px solid #009688;border-radius: 0 2px 2px 0;background-color: #f2f2f2;'],
+				shade: false,
+				area: ['100%','100%'],
+				content: $('#addBox') 
+			}); 
+		});
+		//普通图片上传
+		var uploadInst = upload.render({
+			elem: '#test1'
+			,url: '/upload/' //上传地址
+			,before: function(obj){
+				//预读本地文件示例，不支持ie8
+				obj.preview(function(index, file, result){
+					obj.preview(function(index, file, result){
+						$('#imgObj').html('<img src="'+ result +'" alt="'+ file.name +'" class="layui-upload-img">')
+					});
+				});
+			}
+			,done: function(res){
+				//如果上传失败
+				if(res.code > 0){
+					return layer.msg('上传失败');
+				}
+				//上传成功
+			}
+			,error: function(){
+				//演示失败状态，并实现重传
+				var demoText = $('#demoText');
+				demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+				demoText.find('.demo-reload').on('click', function(){
+					uploadInst.upload();
+				});
+			}
+		});
+		//监听表格复选框选择
+		table.on('checkbox(demo)', function(obj){
+			console.log(obj)
+		});
+		//监听工具条
+		table.on('tool(demo)', function(obj){
+			var data = obj.data;
+			if(obj.event === 'detail'){
+				layer.msg('ID：'+ data.id + ' 的查看操作');
+			} else if(obj.event === 'del'){
+				layer.confirm('真的删除行么', function(index){
+					obj.del();
+					layer.close(index);
+				});
+			} else if(obj.event === 'edit'){
+				layer.alert('编辑行：<br>'+ JSON.stringify(data))
+			}
+		});
+		
+		var $ = layui.$, active = {
+			getCheckData: function(){ //获取选中数据
+				var checkStatus = table.checkStatus('idTest')
+				,data = checkStatus.data;
+				layer.alert(JSON.stringify(data));
+			}
+			,getCheckLength: function(){ //获取选中数目
+				var checkStatus = table.checkStatus('idTest')
+				,data = checkStatus.data;
+				layer.msg('选中了：'+ data.length + ' 个');
+			}
+			,isAll: function(){ //验证是否全选
+				var checkStatus = table.checkStatus('idTest');
+				layer.msg(checkStatus.isAll ? '全选': '未全选')
+			}
+		};
+		
+		$('.demoTable .layui-btn').on('click', function(){
+			var type = $(this).data('type');
+			active[type] ? active[type].call(this) : '';
+		});
+	});
+</script>

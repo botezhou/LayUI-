@@ -1,0 +1,155 @@
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>云程管理</title>
+		<link rel="stylesheet" href="../layui/css/layui.css" media="all">
+		<link rel="stylesheet" href="../css/common.css" media="all">
+</head>
+<body>
+		<blockquote class="layui-elem-quote">新闻管理</blockquote> 
+		<div>
+			<button class="layui-btn addButton"><i class="layui-icon layui-icon-add-1" style="font-size: 14px; color: #fff;"></i> 添加新闻</button>
+		</div>
+		<div>
+			<table class="layui-table" lay-data="{url:'https://www.layui.com/demo/table/user', page:true, id:'idTest'}" lay-filter="demo">
+			<thead>
+				<tr>
+				<th lay-data="{field:'username', width:100}">新闻标题</th>
+				<th lay-data="{field:'username', width:180}">发布时间</th>
+				<th lay-data="{field:'username'}">新闻内容</th>
+				<th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}">操作</th>
+				</tr>
+			</thead>
+			</table>
+			
+			<script type="text/html" id="barDemo">
+				<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+				<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+				<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+			</script>
+		</div> 
+		<div id="addBox" class="lay-hidden">
+			<form class="layui-form" action="">		
+				<div class="layui-form-item">
+					<label class="layui-form-label">新闻标题</label>
+					<div class="layui-input-block">
+						<input type="text" name="title" required  lay-verify="required" placeholder="请输入新闻标题" autocomplete="off" class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">新闻内容</label>
+					<div class="layui-input-block">
+						<div id="editor">
+								
+						</div>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-block">
+						<button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+						<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+					</div>
+				</div>
+			</form>
+      <!-- wangEditor编辑器 -->
+			<script type="text/javascript" src="../js/wangEditor.min.js"></script>
+			<script type="text/javascript">
+					var E = window.wangEditor;
+					var editor = new E('#editor');
+					editor.customConfig.uploadImgShowBase64 = true;   // 使用 base64 保存图片
+					editor.create();
+					// 读取 html
+					// alert(editor.txt.html())
+	
+			</script>
+		</div>	
+</body>
+</html>
+<script type="text/javascript" src="../layui/layui.js"></script>
+<script>
+	layui.use(['table','jquery','upload'], function(){
+	  var table = layui.table,
+	      $ = layui.jquery,
+		  upload = layui.upload;
+	  // 点击轮播图上传
+	  $('.addButton').on('click',function(){
+			layer.open({
+				type: 1, 
+				title: ['添加新闻','margin-bottom: 10px;font-size: 16px;border-left: 5px solid #009688;border-radius: 0 2px 2px 0;background-color: #f2f2f2;'],
+				shade: false,
+				area: ['100%','100%'],
+				content: $('#addBox') 
+			}); 
+	  });
+	  //普通图片上传
+	  var uploadInst = upload.render({
+	  	elem: '#test1'
+	  	,url: '/upload/' //上传地址
+	  	,before: function(obj){
+	  		//预读本地文件示例，不支持ie8
+	  		obj.preview(function(index, file, result){
+	  			obj.preview(function(index, file, result){
+	  				$('#imgObj').html('<img src="'+ result +'" alt="'+ file.name +'" class="layui-upload-img">')
+	  			});
+	  		});
+	  	}
+	  	,done: function(res){
+	  		//如果上传失败
+	  		if(res.code > 0){
+	  			return layer.msg('上传失败');
+	  		}
+	  		//上传成功
+	  	}
+	  	,error: function(){
+	  		//演示失败状态，并实现重传
+	  		var demoText = $('#demoText');
+	  		demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+	  		demoText.find('.demo-reload').on('click', function(){
+	  			uploadInst.upload();
+	  		});
+	  	}
+	  });
+	  //监听表格复选框选择
+	  table.on('checkbox(demo)', function(obj){
+	    console.log(obj)
+	  });
+	  //监听工具条
+	  table.on('tool(demo)', function(obj){
+	    var data = obj.data;
+	    if(obj.event === 'detail'){
+	      layer.msg('ID：'+ data.id + ' 的查看操作');
+	    } else if(obj.event === 'del'){
+	      layer.confirm('真的删除行么', function(index){
+	        obj.del();
+	        layer.close(index);
+	      });
+	    } else if(obj.event === 'edit'){
+	      layer.alert('编辑行：<br>'+ JSON.stringify(data))
+	    }
+	  });
+	  
+	  var $ = layui.$, active = {
+	    getCheckData: function(){ //获取选中数据
+	      var checkStatus = table.checkStatus('idTest')
+	      ,data = checkStatus.data;
+	      layer.alert(JSON.stringify(data));
+	    }
+	    ,getCheckLength: function(){ //获取选中数目
+	      var checkStatus = table.checkStatus('idTest')
+	      ,data = checkStatus.data;
+	      layer.msg('选中了：'+ data.length + ' 个');
+	    }
+	    ,isAll: function(){ //验证是否全选
+	      var checkStatus = table.checkStatus('idTest');
+	      layer.msg(checkStatus.isAll ? '全选': '未全选')
+	    }
+	  };
+	  
+	  $('.demoTable .layui-btn').on('click', function(){
+	    var type = $(this).data('type');
+	    active[type] ? active[type].call(this) : '';
+	  });
+	});
+</script>
